@@ -22,17 +22,14 @@ public class CameraController : MonoBehaviour
         var isSpriting = InputManager.Instance.IsSprinting();
         var zoom = InputManager.Instance.GetZoom();
 
-        // Movement
         var moveDir = Vector3Extensions.WithXZ(inputVector);
+        var zoomAmount = zoom * zoomSpeed * Time.deltaTime;
 
-        if (moveDir == Vector3.zero)
+        if (moveDir == Vector3.zero && zoomAmount == 0)
             return;
 
-        var speed = isSpriting ? MovementSprintSpeed : MovementSpeed;
+        var speed = isSpriting ? MovementSprintSpeed : MovementSpeed; // TODO: speed should be based on height
         var moveOffset = moveDir * (speed * Time.deltaTime);
-
-        // Zoom
-        var zoomAmount = zoom * zoomSpeed * Time.deltaTime;
         var newHeight = Mathf.Clamp(target.position.y - zoomAmount, minHeight, maxHeight);
 
         // Apply movement

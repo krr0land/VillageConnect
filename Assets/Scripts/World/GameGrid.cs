@@ -42,9 +42,14 @@ public class GameGrid : MonoBehaviour
         return new Vector2Int(xCount, zCount);
     }
 
-    public void PositionElement(Vector2Int coordinate, Transform element, Vector3 offset = new Vector3())
+    public Vector3 GetWorldPosition(Vector2Int coordinate)
     {
         var position = new Vector3(coordinate.x * cellSize, 0, coordinate.y * cellSize);
-        element.position = transform.position + position + offset;
+        return transform.position + position;
+    }
+
+    public void PositionElement(Vector2Int coordinate, Transform element, Vector3 offset = new Vector3())
+    {
+        element.position = GetWorldPosition(coordinate) + offset;
     }
 }

@@ -58,7 +58,7 @@ public class InputManager : MonoBehaviour
         return _inputActions.Player.Build.IsPressed();
     }
 
-    public bool IsDestroy()
+    public bool IsDestroying()
     {
         return _inputActions.Player.Destroy.IsPressed();
     }
