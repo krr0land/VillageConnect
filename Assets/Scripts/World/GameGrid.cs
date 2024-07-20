@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 public class GameGrid : MonoBehaviour
@@ -8,7 +9,8 @@ public class GameGrid : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.white;
+        Gizmos.color = Color.blue;
+        Handles.color = Color.blue;
         for (var x = 0; x < size; x++)
         {
             for (var z = 0; z < size; z++)
@@ -16,6 +18,8 @@ public class GameGrid : MonoBehaviour
                 var position = new Vector3(x * cellSize, 0, z * cellSize);
 
                 Gizmos.DrawWireCube(transform.position + position, new Vector3(cellSize, 0, cellSize));
+                var coord = GetNearestCoordinate(transform.position + position);
+                Handles.Label(transform.position + position, $"{coord.x}, {coord.y}");
             }
         }
     }

@@ -17,17 +17,21 @@ public class PathBuilder : MonoBehaviour
         var position = hit.point;
 
         var coordinates = grid.GetNearestCoordinate(position);
+
+        if (worldMap.IsValid(coordinates))
+            return;
+
         grid.PositionElement(coordinates, hoverElement.transform, new Vector3(0, -0.4f, 0));
 
         if (InputManager.Instance.IsBuilding())
         {
-            var tileType = worldMap.GetTile(coordinates);
+            var tileType = worldMap.GetTile(coordinates).TileType;
             if (tileType == TileType.Empty)
                 worldMap.SetTile(coordinates, TileType.Road);
         }
         else if (InputManager.Instance.IsDestroying())
         {
-            var tileType = worldMap.GetTile(coordinates);
+            var tileType = worldMap.GetTile(coordinates).TileType;
             if (tileType == TileType.Road)
                 worldMap.SetTile(coordinates, TileType.Empty);
         }
