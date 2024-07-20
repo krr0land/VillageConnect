@@ -10,6 +10,8 @@ public static class RoadConfiguration
 
     // Representation: 12345678 where 0 is empty/obstacle/village, 1 is road
 
+    // Only the 4 neighbors are considered (2,4,5,7) and some base case for others but they are not in use due to too much cases
+
     public static readonly Dictionary<byte, (int, float)> configuration = new Dictionary<byte, (int, float)>
     {
         // case 1

@@ -97,51 +97,33 @@ public class WorldMapVisualizer : MonoBehaviour
     }
 
     // Determines which road prefab to place based on the surrounding tiles
-
     // 1 2 3
     // 4 . 5
     // 6 7 8
-
     // Representation: 12345678 where 0 is empty/obstacle/village, 1 is road
-
+    // Only 2457 are used, due to too many cases (this is 16 instead of 256 xd)
     private void InstantiateRoad(Vector2Int coordinate, Vector3 position)
     {
         if (gridElements[coordinate.x, coordinate.y] != null)
             Destroy(gridElements[coordinate.x, coordinate.y]);
 
-        var configuration = "00000000";
         var directNeighbors = new HashSet<int>();
-        for (var i = 0; i < 8; i++)
+        for (var i = 0; i < 4; i++)
         {
-            var neighbor = coordinate + neighbors8[i];
+            var neighbor = coordinate + neighbors4[i];
             var tile = worldMap.GetTile(neighbor);
             if (tile != null && tile.TileType == TileType.Road)
-                configuration = configuration.Substring(0, i) + "1" + configuration.Substring(i + 1);
-
-            if (i == 1 || i == 3 || i == 4 || i == 6)
-                if (tile != null && tile.TileType == TileType.Road)
-                    directNeighbors.Add(i);
+                directNeighbors.Add(Neigbor4to8converter[i]);
         }
 
-        var roadPrefab = roadPrefabs[0];
+        var roadPrefab = roadPrefabs[11];
         var rotationY = 0f;
 
-        Debug.Log(configuration + " " + coordinate);
-
-        // cheat for
-        if (directNeighbors.Count == 0) // case 1
-            configuration = "00000000";
-        else if (directNeighbors.Count == 1) // case 2
-            configuration = GenerateConfiguration(directNeighbors);
-        else if (directNeighbors.Count == 2) // case 3
-        {
-            if ((directNeighbors.Contains(4) && directNeighbors.Contains(5)) || (directNeighbors.Contains(2) && directNeighbors.Contains(7)))
-                configuration = GenerateConfiguration(directNeighbors);
-        }
-
-
-
+        var configuration = GenerateConfiguration(directNeighbors);
         byte configurationByte = Convert.ToByte(configuration, 2);
+
+        // Debug.Log(configuration + " " + coordinate);
+
         if (RoadConfiguration.configuration.ContainsKey(configurationByte))
         {
             int index;
@@ -172,4 +154,12 @@ public class WorldMapVisualizer : MonoBehaviour
             configuration = configuration.Substring(0, index) + "1" + configuration.Substring(index + 1);
         return configuration;
     }
+
+    private Dictionary<int, int> Neigbor4to8converter = new Dictionary<int, int>
+    {
+        { 0, 1 }, 
+        { 1, 3 },
+        { 2, 4 },
+        { 3, 6 }
+    };
 }
