@@ -1,5 +1,7 @@
 using QuikGraph;
+using QuikGraph.Algorithms.ConnectedComponents;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WorldMap : MonoBehaviour
@@ -8,11 +10,18 @@ public class WorldMap : MonoBehaviour
 
     private GameTile[,] tiles;
 
-    private UndirectedGraph<VillageTile, Edge<VillageTile>> villageGraph;
+    private UndirectedGraph<GameTile, Edge<GameTile>> tileGraph;
+
+    private List<VillageTile> villages = new List<VillageTile>();
 
     public EventHandler RefreshAllTiles;
     public EventHandler<Vector2Int> RefreshTile;
+    public EventHandler RefreshTexts;
 
+    public int Roads { get; private set; }
+    public int ConnectedVillages { get; private set; }
+
+    public int TotalVillages => villages.Count;
     public int Size => size;
     public int TileCount => tiles.Length;
     public GameTile[,] Tiles => tiles;
@@ -24,10 +33,9 @@ public class WorldMap : MonoBehaviour
             for (var y = 0; y < size; y++)
                 tiles[x, y] = new EmptyTile(x, y);
 
-        villageGraph = new UndirectedGraph<VillageTile, Edge<VillageTile>>();
+        tileGraph = new UndirectedGraph<GameTile, Edge<GameTile>>();
     }
 
-    #region Get/Set Tile
     public bool IsValid(Vector2Int coordinates) => IsValid(coordinates.x, coordinates.y);
     public bool IsValid(int x, int y) => x < 0 || x >= size || y < 0 || y >= size;
 
@@ -43,7 +51,7 @@ public class WorldMap : MonoBehaviour
 
     public void SetTile(int x, int y, TileType tileType)
     {
-        //if(tiles[x + y * size].TileType == TileType.Village) return;
+        var oldTile = tiles[x, y];
 
         switch (tileType)
         {
@@ -64,43 +72,67 @@ public class WorldMap : MonoBehaviour
                 break;
         }
 
+        if (tileType == TileType.Road)
+            Roads++;
+
+        if (tileType == TileType.Village || tileType == TileType.Road)
+        {
+            tileGraph.AddVertex(tiles[x, y]);
+
+            foreach (var neighbor in Neighbors.Cardinals)
+            {
+                var neighborTile = GetTile(x + neighbor.x, y + neighbor.y);
+                if (neighborTile == null) continue;
+                if (neighborTile.TileType == TileType.Road || neighborTile.TileType == TileType.Village)
+                {
+                    tileGraph.AddEdge(new Edge<GameTile>(tiles[x, y], neighborTile));
+                    //tileGraph.AddEdge(new Edge<GameTile>(neighborTile, tiles[x, y]));
+                }
+            }
+        }
+        else if (oldTile != null && oldTile.TileType == TileType.Road && tileType != TileType.Road) // remove old
+        {
+            Roads--;
+            tileGraph.RemoveVertex(oldTile);
+        }
+
         if (tileType == TileType.Village)
-            villageGraph.AddVertex((VillageTile)tiles[x, y]);
+            villages.Add((VillageTile)tiles[x, y]);
+        else if (oldTile != null && oldTile.TileType == TileType.Village && tileType != TileType.Village)
+            villages.Remove((VillageTile)oldTile);
 
         if (tileType == TileType.Road || tileType == TileType.Empty)
             RecalculateConnection();
 
         RefreshTile?.Invoke(this, new Vector2Int(x, y));
+        RefreshTexts?.Invoke(this, new EventArgs());
     }
-    #endregion
 
     public void RecalculateConnection()
     {
-        // TMP CODE
-        var neighbors = new Vector2Int[]
-        {
-            new Vector2Int(-1, 0),
-            new Vector2Int(1, 0),
-            new Vector2Int(0, -1),
-            new Vector2Int(0, 1)
-        };
+        // A village is connected if it is connected to any another village
+        var connectedComponents = new ConnectedComponentsAlgorithm<GameTile, Edge<GameTile>>(tileGraph);
+        connectedComponents.Compute();
 
-        foreach (var village in villageGraph.Vertices)
+        var components = connectedComponents.Components; // stores vertec, component id pairs
+        
+        // reverse the dictionary to get a list of connected vertices for each component
+        var componentVertices = new Dictionary<int, List<GameTile>>();
+        foreach (var component in components)
         {
-            var connected = false;
-            foreach (var neighbor in neighbors)
-            {
-                var neighborTile = GetTile(village.Coordinate.x + neighbor.x, village.Coordinate.y + neighbor.y);
-                if (neighborTile == null) continue;
-                if (neighborTile.TileType == TileType.Road)
-                {
-                    connected = true;
-                    break;
-                }
-            }
+            if(component.Key.TileType != TileType.Village) continue;
 
-            village.Connected = connected;
+            if (!componentVertices.ContainsKey(component.Value))
+                componentVertices[component.Value] = new List<GameTile>();
+            componentVertices[component.Value].Add(component.Key);
         }
 
+        ConnectedVillages = 0;
+        foreach (var village in villages)
+        {
+            village.Connected = componentVertices[components[village]].Count > 1;
+            if (village.Connected)
+                ConnectedVillages++;
+        }
     }
 }

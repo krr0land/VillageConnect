@@ -10,34 +10,16 @@ public class WorldMapVisualizer : MonoBehaviour
 
     [Header("Prefabs")]
     [SerializeField] private GameObject grassPrefab;
-    [SerializeField] private GameObject villagePrefab;
-    [SerializeField] private GameObject obstaclePrefab;
+    [SerializeField] private GameObject[] villagePrefabs;
 
+    [SerializeField] private GameObject[] obstaclePrefabs;
     [SerializeField] private GameObject[] roadPrefabs;
 
     private GameObject[,] gridElements;
 
+    private System.Random random = new System.Random();
+
     public int Size => worldMap.Size;
-
-    private static Vector2Int[] neighbors8 = new Vector2Int[]
-    {
-        new Vector2Int(-1, 1),
-        new Vector2Int(0, 1),
-        new Vector2Int(1, 1),
-        new Vector2Int(-1, 0),
-        new Vector2Int(1, 0),
-        new Vector2Int(-1, -1),
-        new Vector2Int(0, -1),
-        new Vector2Int(1, -1)
-    };
-
-    private static Vector2Int[] neighbors4 = new Vector2Int[]
-    {
-        new Vector2Int(0, 1),
-        new Vector2Int(-1, 0),
-        new Vector2Int(1, 0),
-        new Vector2Int(0, -1),
-    };
 
     private void Awake()
     {
@@ -54,7 +36,7 @@ public class WorldMapVisualizer : MonoBehaviour
             }
     }
 
-    private void OnRefreshAllTiles(object sender, System.EventArgs e)
+    private void OnRefreshAllTiles(object sender, EventArgs e)
     {
         for (var x = 0; x < Size; x++)
             for (var y = 0; y < Size; y++)
@@ -78,7 +60,7 @@ public class WorldMapVisualizer : MonoBehaviour
                 gridElements[coordinate.x, coordinate.y] = Instantiate(grassPrefab, pos, Quaternion.identity, parent);
                 break;
             case TileType.Village:
-                gridElements[coordinate.x, coordinate.y] = Instantiate(villagePrefab, pos, Quaternion.identity, parent);
+                gridElements[coordinate.x, coordinate.y] = Instantiate(villagePrefabs[random.Next(villagePrefabs.Length)], pos, Quaternion.identity, parent);
                 var visualizer = gridElements[coordinate.x, coordinate.y].GetComponentInChildren<VillageTileVisualizer>();
                 visualizer.SetTile((VillageTile)tile);
                 break;
@@ -86,7 +68,7 @@ public class WorldMapVisualizer : MonoBehaviour
                 InstantiateRoad(coordinate, pos);
                 break;
             case TileType.Obstacle:
-                gridElements[coordinate.x, coordinate.y] = Instantiate(obstaclePrefab, pos, Quaternion.identity, parent);
+                gridElements[coordinate.x, coordinate.y] = Instantiate(obstaclePrefabs[random.Next(obstaclePrefabs.Length)], pos, Quaternion.identity, parent);
                 break;
             default:
                 gridElements[coordinate.x, coordinate.y] = Instantiate(grassPrefab, pos, Quaternion.identity, parent);
@@ -110,7 +92,7 @@ public class WorldMapVisualizer : MonoBehaviour
         var directNeighbors = new HashSet<int>();
         for (var i = 0; i < 4; i++)
         {
-            var neighbor = coordinate + neighbors4[i];
+            var neighbor = coordinate + Neighbors.Cardinals[i];
             var tile = worldMap.GetTile(neighbor);
             if (tile != null && tile.TileType == TileType.Road)
                 directNeighbors.Add(Neigbor4to8converter[i]);
@@ -137,7 +119,7 @@ public class WorldMapVisualizer : MonoBehaviour
 
     private void RefreshNeighborRoads(Vector2Int coordinate)
     {
-        foreach (var neighbor in neighbors8)
+        foreach (var neighbor in Neighbors.EightWay)
         {
             var neighborCoordinate = coordinate + neighbor;
             var pos = grid.GetWorldPosition(neighborCoordinate);
