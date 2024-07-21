@@ -17,6 +17,7 @@ public class WorldMap : MonoBehaviour
     public EventHandler RefreshAllTiles;
     public EventHandler<Vector2Int> RefreshTile;
     public EventHandler RefreshTexts;
+    public EventHandler GameEnd;
 
     public int Roads { get; private set; }
     public int ConnectedVillages { get; private set; }
@@ -134,5 +135,8 @@ public class WorldMap : MonoBehaviour
             if (village.Connected)
                 ConnectedVillages++;
         }
+
+        if (componentVertices.Count == 1)
+            GameEnd?.Invoke(this, new EventArgs());
     }
 }

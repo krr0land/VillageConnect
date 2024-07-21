@@ -10,6 +10,7 @@ public class WorldMapVisualizer : MonoBehaviour
 
     [Header("Prefabs")]
     [SerializeField] private GameObject grassPrefab;
+    [SerializeField] private GameObject sidePrefab;
     [SerializeField] private GameObject[] villagePrefabs;
 
     [SerializeField] private GameObject[] obstaclePrefabs;
@@ -34,6 +35,22 @@ public class WorldMapVisualizer : MonoBehaviour
                 var obj = Instantiate(grassPrefab, grid.GetWorldPosition(new Vector2Int(x, y)), Quaternion.identity, parent);
                 gridElements[x, y] = obj;
             }
+
+        // Spawn side walls
+        for (var x = 0; x < Size; x++)
+        {
+            var pos = grid.GetWorldPosition(new Vector2Int(x, -1)) - Vector3.up;
+            Instantiate(sidePrefab, pos, Quaternion.Euler(0, 180, 0), parent);
+
+            pos = grid.GetWorldPosition(new Vector2Int(x, Size)) - Vector3.up;
+            Instantiate(sidePrefab, pos, Quaternion.Euler(0, 0, 0), parent);
+
+            pos = grid.GetWorldPosition(new Vector2Int(Size, x)) - Vector3.up;
+            Instantiate(sidePrefab, pos, Quaternion.Euler(0, 90, 0), parent);
+
+            pos = grid.GetWorldPosition(new Vector2Int(-1, x)) - Vector3.up;
+            Instantiate(sidePrefab, pos, Quaternion.Euler(0, 270, 0), parent);
+        }
     }
 
     private void OnRefreshAllTiles(object sender, EventArgs e)

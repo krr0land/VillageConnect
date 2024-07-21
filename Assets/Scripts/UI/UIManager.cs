@@ -12,6 +12,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI VillageTotal;
     [SerializeField] private Image MusicButton;
 
+    [SerializeField] private GameObject EndGameMsg;
+
     [SerializeField] private Sprite MusicOn;
     [SerializeField] private Sprite MusicOff;
 
@@ -20,6 +22,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         map.RefreshTexts += RefreshTexts;
+        map.GameEnd += GameEnd;
     }
 
     private void RefreshTexts(object sender, EventArgs e)
@@ -27,6 +30,11 @@ public class UIManager : MonoBehaviour
         RoadCount.text = map.Roads.ToString();
         VillageCount.text = map.ConnectedVillages.ToString();
         VillageTotal.text = map.TotalVillages.ToString();
+    }
+
+    private void GameEnd(object sender, EventArgs e)
+    {
+        EndGameMsg.gameObject.SetActive(true);
     }
 
     public void ToggleMusic()
