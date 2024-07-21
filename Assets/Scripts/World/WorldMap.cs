@@ -37,7 +37,7 @@ public class WorldMap : MonoBehaviour
     }
 
     public bool IsValid(Vector2Int coordinates) => IsValid(coordinates.x, coordinates.y);
-    public bool IsValid(int x, int y) => x < 0 || x >= size || y < 0 || y >= size;
+    public bool IsValid(int x, int y) => !(x < 0 || x >= size || y < 0 || y >= size);
 
     public GameTile GetTile(Vector2Int coordinate) => GetTile(coordinate.x, coordinate.y);
     public GameTile GetTile(int x, int y)
