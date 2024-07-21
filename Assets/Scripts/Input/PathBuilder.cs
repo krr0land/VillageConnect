@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PathBuilder : MonoBehaviour
 {
@@ -9,6 +10,12 @@ public class PathBuilder : MonoBehaviour
 
     private void Update()
     {
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+           hoverElement.SetActive(false);
+            return;
+        }
+
         var ray = Camera.main.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
 
         if (!Physics.Raycast(ray, out var hit))
