@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class PathBuilder : MonoBehaviour
 {
-    [SerializeField] private GameGrid grid;
+    [SerializeField] private Grid grid;
     [SerializeField] private WorldMap worldMap;
 
     [SerializeField] private GameObject hoverElement;
@@ -26,7 +26,8 @@ public class PathBuilder : MonoBehaviour
 
         var position = hit.point;
 
-        var coordinates = grid.GetNearestCoordinate(position);
+        var coord3D = grid.WorldToCell(position);
+        var coordinates = new Vector2Int(coord3D.x, coord3D.z);
 
         if (!worldMap.IsValid(coordinates))
         {
@@ -35,7 +36,8 @@ public class PathBuilder : MonoBehaviour
         }
 
         hoverElement.SetActive(true);
-        grid.PositionElement(coordinates, hoverElement.transform, new Vector3(0, -0.4f, 0));
+        hoverElement.transform.position = grid.GetCellCenterWorld(coord3D) + new Vector3(0, -0.4f, 0);
+        //grid.PositionElement(coordinates, hoverElement.transform, new Vector3(0, -0.4f, 0));
 
         if (InputManager.Instance.IsBuilding())
         {

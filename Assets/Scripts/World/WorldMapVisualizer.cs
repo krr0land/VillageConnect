@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WorldMapVisualizer : MonoBehaviour
 {
-    [SerializeField] private GameGrid grid;
+    [SerializeField] private Grid grid;
     [SerializeField] private WorldMap worldMap;
     [SerializeField] private Transform parent;
 
@@ -22,6 +22,20 @@ public class WorldMapVisualizer : MonoBehaviour
 
     public int Size => worldMap.Size;
 
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+        for (var x = 0; x < Size; x++)
+        {
+            for (var z = 0; z < Size; z++)
+            {
+                var position = grid.GetCellCenterWorld(new Vector3Int(x, 0, z)) - new Vector3(0, 0.5f, 0);
+                Gizmos.DrawWireCube(position, grid.cellSize);
+                //Handles.Label(position, $"{x}, {z}");
+            }
+        }
+    }
+
     private void Awake()
     {
         worldMap.RefreshAllTiles += OnRefreshAllTiles;
@@ -32,23 +46,23 @@ public class WorldMapVisualizer : MonoBehaviour
         for (var x = 0; x < Size; x++)
             for (var y = 0; y < Size; y++)
             {
-                var obj = Instantiate(grassPrefab, grid.GetWorldPosition(new Vector2Int(x, y)), Quaternion.identity, parent);
+                var obj = Instantiate(grassPrefab, grid.GetCellCenterWorld(new Vector3Int(x, 0, y)), Quaternion.identity, parent);
                 gridElements[x, y] = obj;
             }
 
         // Spawn side walls
         for (var x = 0; x < Size; x++)
         {
-            var pos = grid.GetWorldPosition(new Vector2Int(x, -1)) - Vector3.up;
+            var pos = grid.GetCellCenterWorld(new Vector3Int(x, 0, -1)) - Vector3.up;
             Instantiate(sidePrefab, pos, Quaternion.Euler(0, 180, 0), parent);
 
-            pos = grid.GetWorldPosition(new Vector2Int(x, Size)) - Vector3.up;
+            pos = grid.GetCellCenterWorld(new Vector3Int(x, 0, Size)) - Vector3.up;
             Instantiate(sidePrefab, pos, Quaternion.Euler(0, 0, 0), parent);
 
-            pos = grid.GetWorldPosition(new Vector2Int(Size, x)) - Vector3.up;
+            pos = grid.GetCellCenterWorld(new Vector3Int(Size, 0, x)) - Vector3.up;
             Instantiate(sidePrefab, pos, Quaternion.Euler(0, 90, 0), parent);
 
-            pos = grid.GetWorldPosition(new Vector2Int(-1, x)) - Vector3.up;
+            pos = grid.GetCellCenterWorld(new Vector3Int(-1, 0, x)) - Vector3.up;
             Instantiate(sidePrefab, pos, Quaternion.Euler(0, 270, 0), parent);
         }
     }
@@ -63,7 +77,7 @@ public class WorldMapVisualizer : MonoBehaviour
     private void OnRefreshTile(object sender, Vector2Int coordinate)
     {
         var tile = worldMap.GetTile(coordinate);
-        var pos = grid.GetWorldPosition(coordinate);
+        var pos = grid.GetCellCenterWorld(new Vector3Int(coordinate.x, 0, coordinate.y));
 
         if (gridElements[coordinate.x, coordinate.y] != null)
         {
@@ -139,7 +153,7 @@ public class WorldMapVisualizer : MonoBehaviour
         foreach (var neighbor in Neighbors.EightWay)
         {
             var neighborCoordinate = coordinate + neighbor;
-            var pos = grid.GetWorldPosition(neighborCoordinate);
+            var pos = grid.GetCellCenterWorld(new Vector3Int(neighborCoordinate.x, 0, neighborCoordinate.y));
             var tile = worldMap.GetTile(neighborCoordinate);
             if (tile != null && tile.TileType == TileType.Road)
                 InstantiateRoad(neighborCoordinate, pos);
